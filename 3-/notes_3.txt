@@ -1,0 +1,2 @@
+What is node?
+=> node is environment for javascript to run in backend without the browser, node contains v8 engine from chrome and libuv library that is used to perform asynchronous tasks, there are bindings that connect the v8 engine to libuv library 
