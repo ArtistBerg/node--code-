@@ -5,7 +5,7 @@ const fs = require("fs");
 const habitablePlanets = [];
 
 function ishabitablePlanets(planet) {
-  // koi_insol : for planet receving enevery from their sun our is 1.0
+  // koi_insol : for planet receving energy from their sun, our is 1.0
   // koi_prad : planet should not be 1.6 times than earth
   return (
     planet["koi_disposition"] === "CONFIRMED" &&

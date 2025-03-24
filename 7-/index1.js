@@ -14,14 +14,18 @@ const data = async function () {
 data().then((data) => users.push(...data));
 
 const server = http.createServer((req, res) => {
-  // req is readable stream
-  console.log(req.url);
   const items = req.url.split("/");
-  if (items[1] === `users`) {
+  if (req.method === "POST" && items[1] === `users`) {
+    req.on("data", (data) => {
+      const newUser = data.toString();
+      console.log("Req: ", newUser);
+      users.push(JSON.parse(newUser));
+    });
+    req.pipe(res);
+  } else if (req.method === "GET" && items[1] === `users`) {
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json");
-    // if there is third url
-    console.log(items.length);
+    //
     if (items.length === 3) {
       const index = Number(items[2]);
       const sentUser = users.filter((user) => user.id === index);
