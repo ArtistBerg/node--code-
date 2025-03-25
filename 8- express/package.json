@@ -5,13 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon Server.js"
+    "watch": "nodemon Server.js",
+    "watch2": "nodemon server2.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "hbs": "^4.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
