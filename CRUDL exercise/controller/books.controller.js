@@ -74,12 +74,12 @@ function getBooks(req, res) {
   database.query(query, (error, results) => {
     if (error) {
       console.log(error);
-      res.status(400).json({
+      return res.status(400).json({
         error: "Can't get your book details",
       });
       //   console.log("code executed");
     } else {
-      res.json(results);
+      return res.json(results);
     }
   });
 }
@@ -91,31 +91,46 @@ function addBook(req, res) {
   console.log(req.body);
   const { name, author, publishyear, status } = req.body;
 
-  const bookStatus = status || "available";
-
-  // create book object
-  const newBook = req.body;
-  response = validateInputData(newBook);
-
-  if (response.error) {
-    console.log(response.error.details);
-    res.json(response.error.details);
-  } else {
-    // no error then only
-    database.query(
-      `INSERT INTO books(name, author, publishyear,status) VALUES (?,?,?,?)`,
-      [name, author, publishyear, bookStatus],
-      (error, results) => {
-        if (error) {
-          res.status(400).json({
-            error: "Can't Add Book",
-          });
-        } else {
-          res.status(200).json(results);
-        }
+  database.query(
+    "SELECT * FROM books WHERE name = ?", // Changed to search by name
+    [name],
+    (error, results) => {
+      if (error) {
+        return res.status(500).json({ error: "database error" });
       }
-    );
-  }
+      if (results.length > 0) {
+        return res
+          .status(409)
+          .json({ error: `Book with ${name} name already exists!` });
+      }
+
+      const bookStatus = status || "available";
+
+      // create book object
+      const newBook = req.body;
+      response = validateInputData(newBook);
+
+      if (response.error) {
+        console.log(response.error.details);
+        res.json(response.error.details);
+      } else {
+        // no error then only
+        database.query(
+          `INSERT INTO books(name, author, publishyear,status) VALUES (?,?,?,?)`,
+          [name, author, publishyear, bookStatus],
+          (error, results) => {
+            if (error) {
+              res.status(400).json({
+                error: "Can't Add Book",
+              });
+            } else if (results.affectedRows == 1) {
+              res.status(200).json(`${name} was successfully added`);
+            }
+          }
+        ); // second query ends // POST
+      }
+    }
+  ); // first query ends // GET
 }
 
 /// editing product
@@ -142,8 +157,35 @@ function addBook(req, res) {
 //   );
 // }
 
-// new editing query function
+//////// E D I T
+//
 function editBook(req, res) {
+  const bookId = req.params["id"];
+  const { name, author, publishyear, status } = req.body;
+  const bookStatus = status || "available";
+
+  const newBook = req.body;
+  response = validateInputData(newBook);
+  if (response.error) {
+    console.log(response.error.details);
+    res.json(response.error.details);
+  } else {
+    database.query(
+      `UPDATE books SET name=?, author=?, publishyear=?, status=? WHERE id = ?`,
+      [name, author, publishyear, bookStatus, bookId],
+      (error, results) => {
+        if (error) {
+          res
+            .status(400)
+            .json(`Could not upadte this book with bookID:${bookId}`);
+        }
+        res.status(200).json(results);
+      }
+    );
+  }
+}
+// new editing query function
+function editBookData(req, res) {
   const bookId = req.params["id"];
   const { name, author, publishyear, status } = req.body;
 
@@ -239,4 +281,5 @@ module.exports = {
   addBook,
   deleteBook,
   editBook,
+  editBookData,
 };
