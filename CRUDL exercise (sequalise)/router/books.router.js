@@ -8,7 +8,7 @@ const {
   addBook,
   editBook,
   editBookData,
-} = require("../controller/books.controller");
+} = require("../model/book2");
 
 // booksRouter.get("/", booksController.getBooks);
 // booksRouter.post("/", booksController.addBook);
@@ -17,12 +17,10 @@ const {
 // booksRouter.put("/:id", booksController.editBook);
 // booksRouter.patch("/:id", booksController.editBookData);
 
-// DESTRUCTURED
 booksRouter.get("/", asyncHandler(getBooks));
 booksRouter.post("/", asyncHandler(addBook));
 booksRouter.get("/:id", asyncHandler(getBook));
 booksRouter.delete("/:id", asyncHandler(deleteBook));
 booksRouter.put("/:id", asyncHandler(editBook));
 booksRouter.patch("/:id", asyncHandler(editBookData));
-
 module.exports = booksRouter;
