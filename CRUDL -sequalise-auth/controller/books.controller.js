@@ -1,7 +1,39 @@
-const database = require("../model/database");
+const database = require("./database");
 const Joi = require("joi");
-const validateInputData = require("../middleware/joiValidation");
-const giveResponse = require("../responseHandling/globalResponseFunction");
+
+function validateInputData(book, edit = false) {
+  if (!edit) {
+    // schema for adding data
+    const JoiSchema = Joi.object({
+      name: Joi.string().min(5).max(100).required(),
+
+      author: Joi.string().min(4).max(50).required(),
+
+      publishyear: Joi.number().min(1).max(2026).required(),
+
+      role: Joi.string().valid("admin").valid("subscriber").required(),
+
+      status: Joi.string().valid("available").valid("not available").optional(),
+    }).options({ abortEarly: false });
+    return JoiSchema.validate(book);
+  }
+
+  // schema for updating data
+  const JoiSchema2 = Joi.object({
+    name: Joi.string().min(5).max(100).optional(),
+
+    author: Joi.string().min(4).max(50).optional(),
+
+    publishyear: Joi.number().min(1).max(2026).optional(),
+
+    role: Joi.string().valid("admin").valid("subscriber").required(),
+
+    status: Joi.string().valid("available").valid("not available").optional(),
+  }).options({ abortEarly: false });
+
+  return JoiSchema2.validate(book);
+}
+
 ///////////  G E T
 //
 function getBook(req, res) {
@@ -18,18 +50,15 @@ function getBook(req, res) {
   database.query(query, (error, results) => {
     if (error) {
       console.log(error);
-      giveResponse(400, res, {
+      res.status(400).json({
         error: "Can't get your book details",
       });
-
       //   console.log("code executed");
     } else if (!results.length) {
-      giveResponse(400, res, {
-        message: "Your Book is not availabe at this time",
-      });
+      res.send("Your Book is not availabe at this time");
     } else {
       console.log(results.length);
-      giveResponse(200, res, results);
+      res.json(results);
     }
   });
 }
@@ -72,7 +101,7 @@ function addBook(req, res) {
       if (results.length > 0) {
         return res
           .status(409)
-          .json({ error: `Book with ${name} name already exists!` }); // conflict : 409
+          .json({ error: `Book with ${name} name already exists!` });
       }
 
       const bookStatus = status || "available";
@@ -95,9 +124,7 @@ function addBook(req, res) {
                 error: "Can't Add Book",
               });
             } else if (results.affectedRows == 1) {
-              res
-                .status(200)
-                .json({ message: `${name} was successfully added` });
+              res.status(200).json(`${name} was successfully added`);
             }
           }
         ); // second query ends // POST
@@ -105,6 +132,31 @@ function addBook(req, res) {
     }
   ); // first query ends // GET
 }
+
+/// editing product
+// function editBook(req, res) {
+//   const bookId = req.params["id"];
+
+//   console.log(req.body);
+//   // validate body
+
+//   //
+
+//   database.query(
+//     `UPDATE boooks
+//   SET name = ?, author = ?
+//   WHERE id = ?`,
+//     [name, quantity, bookId],
+//     (error, results) => {
+//       if (error) {
+//         res.status(400).json(error);
+//       } else {
+//         res.status(200).json(results);
+//       }
+//     }
+//   );
+// }
+
 //////// E D I T
 //
 function editBook(req, res) {
@@ -127,10 +179,7 @@ function editBook(req, res) {
             .status(400)
             .json(`Could not upadte this book with bookID:${bookId}`);
         }
-        res.status(200).json({
-          message: `${name} was succesfully edited`,
-          results,
-        });
+        res.status(200).json(results);
       }
     );
   }

@@ -6,7 +6,14 @@ function validateInputData(book, edit = false) {
     const JoiSchema = Joi.object({
       name: Joi.string().min(5).max(100).required(),
 
-      author: Joi.string().min(4).max(50).required(),
+      author: Joi.string().min(4).max(50).required().messages({
+        "string.min":
+          "Author is required and cannot be empty or only whitespace.",
+        "string.empty":
+          "Author is required and cannot be empty or only whitespace.",
+        "any.required":
+          "Author is required and cannot be empty or only whitespace.",
+      }),
 
       publishyear: Joi.number().min(1).max(2026).required(),
 
