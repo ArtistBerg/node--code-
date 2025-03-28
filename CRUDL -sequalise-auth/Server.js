@@ -35,7 +35,7 @@ app.use(responseTime);
 
 // get - post - put - patch  books
 app.use("/register", userRouter);
-app.use("/books", authenticate, booksRouter);
+app.use("/books", booksRouter);
 
 app.use(globalErrorHandler);
 // undefined routes

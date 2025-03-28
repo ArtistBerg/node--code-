@@ -1,6 +1,6 @@
 const express = require("express");
 const booksRouter = express.Router();
-const asyncHandler = require("../globalErrorHandling/globalErrorHandler");
+const asyncHandler = require("../globalErrorHandling/globalTryCatch");
 const {
   getBooks,
   getBook,

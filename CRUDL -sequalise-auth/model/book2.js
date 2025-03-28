@@ -106,10 +106,9 @@ async function deleteBook(req, res, next) {
 
 // A D D : BOOK
 async function addBook(req, res, next) {
-  const { name } = req.body;
-
-  const newBook = req.body;
-  let response = validateInputData(newBook);
+  let checkbook = req.body;
+  let response = validateInputData(checkbook);
+  const { username, password, ...newBook } = req.body;
 
   if (response.error) {
     console.log(response.error.details);

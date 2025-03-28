@@ -1,6 +1,7 @@
 const express = require("express");
 const booksRouter = express.Router();
 const { asyncHandler } = require("../globalErrorHandling/globalErrorHandler");
+const authenticate = require("../middleware/authenticate");
 const {
   getBooks,
   getBook,
@@ -18,9 +19,9 @@ const {
 // booksRouter.patch("/:id", booksController.editBookData);
 
 booksRouter.get("/", asyncHandler(getBooks));
-booksRouter.post("/", asyncHandler(addBook));
+booksRouter.post("/", authenticate, asyncHandler(addBook));
 booksRouter.get("/:id", asyncHandler(getBook));
-booksRouter.delete("/:id", asyncHandler(deleteBook));
-booksRouter.put("/:id", asyncHandler(editBook));
-booksRouter.patch("/:id", asyncHandler(editBookData));
+booksRouter.delete("/:id", authenticate, asyncHandler(deleteBook));
+booksRouter.put("/:id", authenticate, asyncHandler(editBook));
+booksRouter.patch("/:id", authenticate, asyncHandler(editBookData));
 module.exports = booksRouter;

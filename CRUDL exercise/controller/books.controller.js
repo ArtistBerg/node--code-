@@ -45,12 +45,12 @@ function getBooks(req, res) {
   database.query(query, (error, results) => {
     if (error) {
       console.log(error);
-      return res.status(400).json({
+      giveResponse(400, res, {
         error: "Can't get your book details",
       });
       //   console.log("code executed");
     } else {
-      return res.json(results);
+      return giveResponse(200, res, results);
     }
   });
 }
@@ -67,12 +67,13 @@ function addBook(req, res) {
     [name],
     (error, results) => {
       if (error) {
-        return res.status(500).json({ error: "database error" });
+        return giveResponse(500, res, { error: "database error" });
       }
       if (results.length > 0) {
-        return res
-          .status(409)
-          .json({ error: `Book with ${name} name already exists!` }); // conflict : 409
+        return giveResponse(409, res, {
+          error: `Book with ${name} name already exists!`,
+        });
+        // conflict : 409
       }
 
       const bookStatus = status || "available";
@@ -83,7 +84,7 @@ function addBook(req, res) {
 
       if (response.error) {
         console.log(response.error.details);
-        res.json(response.error.details);
+        giveResponse(400, res, response, error.details);
       } else {
         // no error then only
         database.query(
@@ -91,13 +92,13 @@ function addBook(req, res) {
           [name, author, publishyear, bookStatus],
           (error, results) => {
             if (error) {
-              res.status(400).json({
+              giveResponse(400, res, {
                 error: "Can't Add Book",
               });
             } else if (results.affectedRows == 1) {
-              res
-                .status(200)
-                .json({ message: `${name} was successfully added` });
+              giveResponse(200, res, {
+                message: `${name} was successfully added`,
+              });
             }
           }
         ); // second query ends // POST
@@ -116,18 +117,18 @@ function editBook(req, res) {
   response = validateInputData(newBook);
   if (response.error) {
     console.log(response.error.details);
-    res.json(response.error.details);
+    giveResponse(400, res, response, error.details);
   } else {
     database.query(
       `UPDATE books SET name=?, author=?, publishyear=?, status=? WHERE id = ?`,
       [name, author, publishyear, bookStatus, bookId],
       (error, results) => {
         if (error) {
-          res
-            .status(400)
-            .json(`Could not upadte this book with bookID:${bookId}`);
+          giveResponse(400, res, {
+            message: `Could not upadte this book with bookID:${bookId}`,
+          });
         }
-        res.status(200).json({
+        giveResponse(200, res, {
           message: `${name} was succesfully edited`,
           results,
         });
@@ -145,7 +146,7 @@ function editBookData(req, res) {
 
   if (response.error) {
     console.log(response.error.details);
-    res.json(response.error.details);
+    giveResponse(400, res, response, error.details);
   } else {
     let updateQuery = "UPDATE books SET ";
     const updateValues = [];
@@ -168,12 +169,14 @@ function editBookData(req, res) {
       if (status == "availabe" || "not available") {
         updateValues.push(status);
       } else {
-        res.status(400).json("invalid status");
+        giveResponse(400, res, {
+          message: "Invalid status",
+        });
       }
     }
 
     if (updateFields.length === 0) {
-      return res.status(400).json({ error: "No fields to update provided" });
+      return giveResponse(400, res, { error: "No fields to update provided" });
     }
 
     updateQuery += updateFields.join(", ") + " WHERE id = ?";
@@ -183,14 +186,14 @@ function editBookData(req, res) {
     database.query(updateQuery, updateValues, (error, results) => {
       if (error) {
         console.error("Database error:", error);
-        return res.status(500).json({ error: "Database error" });
+        return giveResponse(500, res, { error: "Database error" });
       }
 
       if (results.affectedRows === 0) {
-        return res.status(404).json({ error: "Book not found" });
+        return giveResponse(404, res, { error: "Book not found" });
       }
 
-      res.json({ message: "Book updated successfully" });
+      giveResponse(200, res, { message: "Book updated successfully" });
     });
   }
 }
@@ -206,20 +209,14 @@ function deleteBook(req, res) {
     [productId],
     (error, results) => {
       if (error) {
-        res.status(500).json({
-          error: "Database error during deletion",
-        });
-        return;
+        return giveResponse(500, res, { error: "Database error" });
       }
 
       if (results.affectedRows === 0) {
-        res.status(404).json({
-          error: "book was not found",
-        });
-        return;
+        return giveResponse(404, res, { error: "Book not found" });
       }
 
-      res.status(200).json({
+      giveResponse(200, res, {
         message: "Book deleted successfully",
       });
     }
