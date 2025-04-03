@@ -1,0 +1,6 @@
+ compared the sql and mongodb
+ 
+ what to choose between both for nasa project
+ 
+ user: nasa-api
+ pass: OgBqeNrPNWFVg2ab
