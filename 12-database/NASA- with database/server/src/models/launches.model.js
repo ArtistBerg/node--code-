@@ -67,7 +67,6 @@ async function scheduleNewLaunch(launch) {
 
   await saveLaunch(newLaunch);
 }
-
 async function abortLaunchById(launchId) {
   const aborted = await launchesDB.updateOne(
     {
@@ -80,7 +79,6 @@ async function abortLaunchById(launchId) {
   );
   console.log(aborted);
   return aborted.matchedCount;
-  // return aborted.ok === 1 && aborted.nModified === 1;
 }
 
 module.exports = {
