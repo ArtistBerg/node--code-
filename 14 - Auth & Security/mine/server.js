@@ -45,13 +45,6 @@ const app = express();
 app.use(helmet());
 
 // cookies & passport initialisation
-// app.use(
-//   cookieSession({
-//     name: "session",
-//     maxAge: 24 * 60 * 60 * 1000,
-//     keys: [config.COOKIE_KEY_1, config.COOKIE_KEY_2],
-//   })
-// );
 app.use(
   session({
     secret: config.COOKIE_KEY_1 || "some-default-secret",
@@ -66,11 +59,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 function checkLoggedIn(req, res, next) {
-  const isLoggedIn = req.isAuthenticated && req.isAuthenticated();
-
+  console.log(`USER: `, req.user);
+  const isLoggedIn = req.isAuthenticated() && req.user;
   if (!isLoggedIn) {
     return res.status(401).json({
-      message: "You must log in!",
+      message: "You must log in now!",
     });
   }
 
@@ -88,15 +81,26 @@ app.get(
   passport.authenticate("google", {
     failureRedirect: "/failure",
     successRedirect: "/",
-    session: true, // was false becausue of API key
+    session: true, // was false because of API key
   })
-  // (req, res) => {
-  //   console.log("Google Called us back");
-  //   // this fn wouldn't be called bcz failureRedirect & sucessRedirect are already there
-  // }
+  /*
+  (req, res) => {
+     console.log("Google Called us back");
+     // this fn wouldn't be called bcz failureRedirect & sucessRedirect are already there
+  } */
 );
 
-app.get("/auth/logout", (req, res) => {});
+app.get("/auth/logout", (req, res, next) => {
+  req.logout(function (err) {
+    if (err) {
+      return next(err);
+    }
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid");
+      res.redirect("/");
+    });
+  });
+});
 
 app.get("/secret", checkLoggedIn, (req, res) => {
   return res.status(200).json({
@@ -115,6 +119,10 @@ app.get("/", (req, res) => {
 app.get("/current-user", (req, res) => {
   res.send(req.user ? req.user : "No user logged in");
 });
+
+// app.get("/logout-success", (req, res) => {
+//   res.sendFile(path.join(__dirname, "public", "logout-success.html"));
+// });
 
 const options = {
   key: fs.readFileSync("key.pem"),

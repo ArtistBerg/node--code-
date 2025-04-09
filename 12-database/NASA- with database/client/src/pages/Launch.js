@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Appear, Button, Loading, Paragraph } from "arwes";
 import Clickable from "../components/Clickable";
-import { ka } from "date-fns/locale";
+// import { ka } from "date-fns/locale";
 
 const Launch = (props) => {
   console.log(props.planets);
