@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whatsupp Clone</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Whatsupp</h1>
+    <div id="chat"></div>
+    <div id="input-area">
+      <input type="text" id="message" placeholder="Type a message" />
+      <button id="sendBtn">Send</button>
+      <button id="leaveBtn">Leave</button>
+      <button id="recBtn">Reconnect</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      const chatDiv = document.getElementById("chat");
+      const sendBtn = document.getElementById("sendBtn");
+      const messageInput = document.getElementById("message");
+
+      sendBtn.addEventListener("click", () => {
+        const text = messageInput.value.trim();
+        if (text === "") return;
+
+        const messageId = `${socket.id}-${Date.now()}`;
+        socket.emit("client-message", { id: socket.id, text, messageId });
+        messageInput.value = "";
+      });
+
+      document.getElementById("leaveBtn").onclick = () => socket.disconnect();
+      document.getElementById("recBtn").onclick = () => socket.connect();
+
+      // Handle incoming messages
+      socket.on("server-message", (message) => {
+        const container = document.createElement("div");
+        container.classList.add("message");
+
+        const textSpan = document.createElement("span");
+        textSpan.innerText = message.text;
+
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const timeSpan = document.createElement("span");
+        timeSpan.classList.add("timestamp");
+        timeSpan.innerText = `${hours}:${minutes}`;
+
+        container.appendChild(textSpan);
+        container.appendChild(timeSpan);
+
+        if (message.id === socket.id) {
+          container.classList.add("own");
+
+          const tick = document.createElement("span");
+          tick.classList.add("tick", "gray-ticks");
+          tick.innerText = "✔✔";
+          tick.dataset.messageId = message.messageId;
+          container.appendChild(tick);
+        } else {
+          container.classList.add("other");
+
+          if (document.hasFocus()) {
+            console.log(`has focus`);
+            socket.emit("message-seen", {
+              messageId: message.messageId,
+              senderId: message.id,
+            });
+          }
+        }
+
+        chatDiv.appendChild(container);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      });
+
+      // Update tick when message is seen
+      socket.on("update-tick", ({ messageId }) => {
+        const ticks = document.querySelectorAll(".tick");
+        ticks.forEach((tick) => {
+          if (tick.dataset.messageId === messageId) {
+            tick.classList.remove("gray-ticks");
+            tick.classList.add("blue-ticks");
+          }
+        });
+      });
+
+      // Also mark unseen messages if tab becomes active later
+      window.addEventListener("focus", () => {
+        const unseen = document.querySelectorAll(".other");
+        unseen.forEach((el) => {
+          const messageId = el.dataset.messageId;
+          const senderId = el.dataset.senderId;
+          if (messageId && senderId) {
+            socket.emit("message-seen", { messageId, senderId });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
